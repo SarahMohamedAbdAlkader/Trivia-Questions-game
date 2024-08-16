@@ -1,0 +1,13 @@
+@font-face {
+  font-family: "JetBrains-Regular";
+  src: url(./assets/fonts/JetBrainsMono-VariableFont_wght.ttf);
+}
+
+body,
+button {
+  font-family: 'JetBrains-Regular';
+}
+
+body {
+  margin: 0;
+}

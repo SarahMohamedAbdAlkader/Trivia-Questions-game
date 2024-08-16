@@ -1,0 +1,11 @@
+html,
+body,
+#root,
+.App {
+  height: 100%;
+}
+
+/* .App {
+  display: flex;
+  align-items: center;
+} */
