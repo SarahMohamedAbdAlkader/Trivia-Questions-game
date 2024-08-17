@@ -22,6 +22,7 @@ const Wrapper = styled.footer`
   width: 100%;
   background-color: white;
   padding: 20px;
+  box-sizing: border-box;
 `;
 
 export default function KeyboardHints({

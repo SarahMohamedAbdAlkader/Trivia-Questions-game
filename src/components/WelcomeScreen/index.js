@@ -43,22 +43,23 @@ const Input = styled.input`
   padding-left: 35px;
 `;
 
-export default function WelcomeScreen() {
+export default function WelcomeScreen({ onChooseLevel }) {
   const { playerInfo, setPlayerInfo } = usePlayer();
 
   const onChange = ({ target: { value } }) => {
     setPlayerInfo({ ...playerInfo, name: value });
   };
 
-  const onChooseLevel = (level) => {
-    setPlayerInfo({ ...playerInfo, level });
-  };
-
   return (
     <Card>
       <form>
         <CardContent>
-          <Input placeholder="Player name" onChange={onChange} required />
+          <Input
+            placeholder="Player name"
+            onChange={onChange}
+            required
+            value={playerInfo.name}
+          />
           <ButtonsWrapper>
             {GAME_LEVELS.map(({ label }) => (
               <Button

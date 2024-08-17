@@ -6,6 +6,7 @@ import { useCookies } from "react-cookie";
 
 import { getCategories } from "services/categories";
 import { usePlayer } from "contexts/player";
+import { KEYBOARD_KEYS } from "constants/keyboard-keys";
 
 import Button from "components/Button";
 import QuestionCard from "components/QuestionCard/index";
@@ -41,7 +42,7 @@ const CategoriesContent = styled.div`
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState({});
 
   const [_, setCookie] = useCookies();
   const { playerInfo, setPlayerInfo } = usePlayer();
@@ -57,51 +58,83 @@ export default function CategoriesPage() {
     if (data?.trivia_categories) {
       setCategories([
         ...data.trivia_categories,
-        { id: "random", name: "Random Questions" },
+        { id: "random", name: "Random Questions", index: 25 },
       ]);
     }
   }, [data?.trivia_categories]);
 
-  const handleSelectCategory = (id) => {
-    setSelectedCategory(id);
-    setPlayerInfo({ ...playerInfo, selectedCategory: id });
+  const handleSelectCategory = ({ name, index, id }) => {
+    setSelectedCategory({ name, index, id });
+    setPlayerInfo({ ...playerInfo, selectedCategory: name });
   };
 
   const onStart = () => {
-    if (!selectedCategory) {
+    if (!selectedCategory?.name) {
       alert("Please Select a category first!");
     } else {
-      setCookie("categoryId", selectedCategory);
+      setCookie("categoryName", selectedCategory.name);
       setPlayerInfo({
         ...playerInfo,
         selectedCategories: [
           ...playerInfo.selectedCategories,
-          selectedCategory,
+          selectedCategory.name,
         ],
       });
       navigate({
         pathname: "/game-questions",
         search: createSearchParams({
-          category: selectedCategory,
+          category: selectedCategory.id,
         }).toString(),
       });
     }
   };
+
   useEffect(() => {
     handleGettingCategories();
   }, [data, handleGettingCategories]);
+
+  window.onkeydown = function (e) {
+    if (e.target.tagName === "INPUT") {
+      return;
+    }
+    const code = e.keyCode ? e.keyCode : e.which;
+    if (code === KEYBOARD_KEYS.RIGHT) {
+      const newIndex =
+        selectedCategory.name &&
+        selectedCategory.index !== categories.length - 1
+          ? selectedCategory.index + 1
+          : 0;
+      setSelectedCategory({
+        name: categories[newIndex].name,
+        id: categories[newIndex].id,
+        index: newIndex,
+      });
+    } else if (code === KEYBOARD_KEYS.LEFT) {
+      const newIndex =
+        selectedCategory.name && selectedCategory.index
+          ? selectedCategory.index - 1
+          : 0;
+      setSelectedCategory({
+        name: categories[newIndex].name,
+        id: categories[newIndex].id,
+        index: newIndex,
+      });
+    } else if (code === KEYBOARD_KEYS.S) {
+      onStart();
+    }
+  };
 
   return (
     <Wrapper>
       <Title>{isLoading ? "...Loading" : "Questions Category"}</Title>
       <CategoriesContent>
-        {categories.map(({ id, name }) => (
+        {categories.map(({ id, name }, index) => (
           <QuestionCard
             value={name}
             key={id}
-            onClick={() => handleSelectCategory(id)}
-            active={selectedCategory === id}
-            disabled={playerInfo.selectedCategories.includes(id)}
+            onClick={() => handleSelectCategory({ name, index, id })}
+            active={selectedCategory.id === id}
+            disabled={playerInfo.selectedCategories.includes(name)}
           />
         ))}
       </CategoriesContent>

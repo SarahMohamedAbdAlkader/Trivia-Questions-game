@@ -33,14 +33,15 @@ const ButtonWrapper = styled.button`
   height: ${({ size }) => getButtonHeight({ size })};
 `;
 
-export default function Button({ label, size, onClick, active = false }) {
+export default function Button({
+  label,
+  type = "default",
+  size,
+  onClick,
+  active = false,
+}) {
   return (
-    <ButtonWrapper
-      size={size}
-      type="button"
-      onClick={onClick}
-      active={!!active}
-    >
+    <ButtonWrapper size={size} type={type} onClick={onClick} active={!!active}>
       {label}
     </ButtonWrapper>
   );
