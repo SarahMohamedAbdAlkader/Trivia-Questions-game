@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
+
+import shuffle from "lodash/shuffle";
 import { useQuery } from "@tanstack/react-query";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
 
@@ -15,54 +16,18 @@ import {
   GAME_LEVELS_KEYS,
   MAX_NUMBER_OF_CATEGORIES,
   MAX_NUMBER_OF_QUESTIONS,
+  QUESTIONS_TYPE,
 } from "constants/game";
+import { KEYBOARD_KEYS } from "constants/keyboard-keys";
 
-const QUESTIONS_TYPE = {
-  BOOLEON: "boolean",
-  MULTI: "multiple",
-};
-
-const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden;
-  padding: 20px;
-`;
-
-const Content = styled.div`
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-`;
-
-const QuestionTitle = styled.h1`
-  font-size: 40px;
-  margin-bottom: 34px;
-  text-align: center;
-  white-space: pre-wrap;
-`;
-
-const AnswersWrapper = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  max-width: 1096px;
-  width: 100%;
-  gap: 57px;
-  margin-bottom: 130px;
-`;
-
-const SkipNextWrapper = styled.div`
-  display: flex;
-  gap: 57px;
-  margin-bottom: 50px;
-`;
-
-const TimerWrapper = styled.div`
-  display: flex;
-  text-align: center;
-  margin-bottom: 50px;
-`;
+import {
+  AnswersWrapper,
+  Content,
+  QuestionTitle,
+  SkipNextWrapper,
+  TimerWrapper,
+  Wrapper,
+} from "./GameQuestions.styles";
 
 export default function GameQuestions() {
   const [questionId, setQuestionId] = useState(0);
@@ -74,34 +39,53 @@ export default function GameQuestions() {
   const queryParameters = new URLSearchParams(window.location.search);
   const category = queryParameters.get("category");
   const startTime = new Date();
+
   const { data, isLoading } = useQuery({
     queryKey: ["questions"],
     queryFn: () =>
       getCategoryQuestions({
         amount: 10,
-        category,
+        ...(!!category && { category }),
         difficulty: playerInfo.level,
         token: playerInfo?.sessionToken,
       }),
   });
-  const questions = data?.results || [];
-  const currentQuestion = questions[questionId];
 
-  const getNextQuestion = () => {
+  const questions = useMemo(() => data?.results || [], [data]);
+  let currentQuestion = useMemo(
+    () => questions[questionId] || {},
+    [questions, questionId]
+  );
+
+  const multiShuffledAnswers = useMemo(() => {
+    return (
+      currentQuestion.type === QUESTIONS_TYPE.MULTI &&
+      shuffle([
+        ...currentQuestion.incorrect_answers,
+        currentQuestion.correct_answer,
+      ])
+    );
+  }, [currentQuestion]);
+
+  const getNextQuestion = useCallback(() => {
     setQuestionId(questionId + 1);
-  };
+  }, [questionId]);
 
   const onChooseAnswer = (value) => {
     setChoosenAnswer(value);
   };
-  const findCatgoryInSavedQuestions = (prev) => {
-    const findCategoryIndex = prev.findIndex(
-      ({ category }) => category === currentQuestion.category
-    );
-    return findCategoryIndex;
-  };
 
-  const onSkip = () => {
+  const findCatgoryInSavedQuestions = useCallback(
+    (prev) => {
+      const findCategoryIndex = prev.findIndex(
+        ({ category }) => category === currentQuestion.category
+      );
+      return findCategoryIndex;
+    },
+    [currentQuestion.category]
+  );
+
+  const onSkip = useCallback(() => {
     setGameQuestion((prev) => {
       const findCategoryIndex = findCatgoryInSavedQuestions(prev);
       if (findCategoryIndex > -1) {
@@ -125,7 +109,12 @@ export default function GameQuestions() {
       }
     });
     getNextQuestion();
-  };
+  }, [
+    currentQuestion.category,
+    findCatgoryInSavedQuestions,
+    getNextQuestion,
+    setGameQuestion,
+  ]);
 
   const onSubmitAnswer = () => {
     if (!choosenAnswer) {
@@ -171,9 +160,11 @@ export default function GameQuestions() {
       }
     }
     getNextQuestion();
+    setChoosenAnswer(null);
+    currentQuestion = {};
   };
 
-  const getSkippingTimeBasOnDifficulty = () => {
+  const getSkippingTimeBasOnDifficulty = useCallback(() => {
     switch (playerInfo.level) {
       case GAME_LEVELS_KEYS.EASY:
         return AUTO_SKIPPING_TIME_IN_SECONDS.EASY;
@@ -184,15 +175,24 @@ export default function GameQuestions() {
       default:
         return AUTO_SKIPPING_TIME_IN_SECONDS.EASY;
     }
-  };
+  }, [playerInfo.level]);
 
   useEffect(() => {
+    if (questionId >= data?.results?.length) {
+      navigate("/category");
+    }
     const timeoutId = setTimeout(() => {
       onSkip();
     }, getSkippingTimeBasOnDifficulty() * 1000);
 
     return () => clearTimeout(timeoutId);
-  }, [questionId]);
+  }, [
+    questionId,
+    data?.results?.length,
+    getSkippingTimeBasOnDifficulty,
+    navigate,
+    onSkip,
+  ]);
 
   const renderTime = ({ remainingTime }) => {
     if (remainingTime === 0) {
@@ -208,6 +208,48 @@ export default function GameQuestions() {
     );
   };
 
+  const getPressedKeyFunction = (keyCode) => {
+    switch (keyCode) {
+      case KEYBOARD_KEYS.T:
+        return (
+          currentQuestion.type === QUESTIONS_TYPE.BOOLEON &&
+          setChoosenAnswer("True")
+        );
+      case KEYBOARD_KEYS.F:
+        return (
+          currentQuestion.type === QUESTIONS_TYPE.BOOLEON &&
+          setChoosenAnswer("False")
+        );
+      case KEYBOARD_KEYS.S:
+        return onSkip();
+      case KEYBOARD_KEYS.N:
+        return onSubmitAnswer();
+      default:
+        return;
+    }
+  };
+
+  window.onkeydown = function (e) {
+    if (e.target.tagName === "INPUT") {
+      return;
+    }
+    const { ONE, TWO, THREE, FOUR } = KEYBOARD_KEYS;
+    const code = e.keyCode ? e.keyCode : e.which;
+    if (
+      currentQuestion.type === QUESTIONS_TYPE.MULTI &&
+      [ONE, TWO, THREE, FOUR].includes(code)
+    ) {
+      const INDEXS_MAPPER = {
+        [ONE]: 0,
+        [TWO]: 1,
+        [THREE]: 2,
+        [FOUR]: 3,
+      };
+      const index = INDEXS_MAPPER[code];
+      setChoosenAnswer(multiShuffledAnswers[index]);
+    } else getPressedKeyFunction(code);
+  };
+
   return (
     <Wrapper>
       {isLoading ? (
@@ -220,7 +262,7 @@ export default function GameQuestions() {
               duration={getSkippingTimeBasOnDifficulty()}
               colors={["#004777", "#F7B801", "#A30000", "#A30000"]}
               colorsTime={[10, 6, 3, 0]}
-              onComplete={() => ({ shouldRepeat: true, delay: 1 })}
+              onComplete={() => ({ shouldRepeat: true, delay: 0 })}
             >
               {renderTime}
             </CountdownCircleTimer>
@@ -229,14 +271,12 @@ export default function GameQuestions() {
             <QuestionTitle>{currentQuestion?.question}</QuestionTitle>
             <AnswersWrapper>
               {currentQuestion?.type === QUESTIONS_TYPE.MULTI ? (
-                [
-                  ...currentQuestion.incorrect_answers,
-                  currentQuestion.correct_answer,
-                ].map((value) => (
+                multiShuffledAnswers.map((value, index) => (
                   <Button
                     label={value}
                     onClick={() => onChooseAnswer(value)}
                     active={choosenAnswer === value}
+                    keyboardHint={index + 1}
                     // type={
                     //   !choosenAnswer
                     //     ? "default"
@@ -252,11 +292,15 @@ export default function GameQuestions() {
                     label="True"
                     onClick={() => onChooseAnswer("True")}
                     active={choosenAnswer === "True"}
+                    keyboardHint="T"
+                    size={BUTTON_TYPES.LARGE}
                   />
                   <Button
                     label="False"
                     onClick={() => onChooseAnswer("False")}
                     active={choosenAnswer === "False"}
+                    keyboardHint="F"
+                    size={BUTTON_TYPES.LARGE}
                   />
                 </>
               )}

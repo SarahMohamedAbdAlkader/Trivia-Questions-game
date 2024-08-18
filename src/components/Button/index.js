@@ -1,47 +1,16 @@
-import styled from "styled-components";
-
-import { BUTTON_TYPES } from "constants/button";
-
-const getButtonHeight = ({ size }) => {
-  switch (size) {
-    case BUTTON_TYPES.SMALL:
-      return "46px";
-    default:
-      return "100px";
-  }
-};
-
-const getButtonWidth = ({ size }) => {
-  switch (size) {
-    case BUTTON_TYPES.SQUARE:
-      return "100px";
-    case BUTTON_TYPES.SMALL:
-      return "192px";
-    default:
-      return "330px";
-  }
-};
-
-const ButtonWrapper = styled.button`
-  background: ${({ active }) => (active ? "#666" : "#b6b6b6")};
-  color: ${({ active }) => (active ? "white" : "#000000")};
-  font-size: 25px;
-  border: 1px solid #000000;
-  border-radius: 4px;
-  cursor: pointer;
-  width: ${({ size }) => getButtonWidth({ size })};
-  height: ${({ size }) => getButtonHeight({ size })};
-`;
+import { ButtonWrapper, KeyHint } from "./index.styles";
 
 export default function Button({
   label,
   type = "default",
   size,
   onClick,
-  active = false,
+  keyboardHint = false,
+  ...props
 }) {
   return (
-    <ButtonWrapper size={size} type={type} onClick={onClick} active={!!active}>
+    <ButtonWrapper size={size} type={type} onClick={onClick} {...props}>
+      {keyboardHint && <KeyHint>{keyboardHint}</KeyHint>}
       {label}
     </ButtonWrapper>
   );

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import styled from "styled-components";
 import { useCookies } from "react-cookie";
 
 import { BUTTON_TYPES } from "constants/button";
@@ -13,27 +12,16 @@ import { GAME_LEVELS_KEYS } from "constants/game";
 import WelcomeScreen from "components/WelcomeScreen/index";
 import Button from "components/Button";
 import KeyboardHints from "components/KeyboardHints";
-
-const MainContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
-`;
-
-const Wrapper = styled.div`
-  width: 100%;
-  overflow-y: auto;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-`;
+import { MainContent, Wrapper } from "./HomePage.styles";
 
 export default function HomePage() {
-  const [isSubmitActive, setIsSubmitActive] = useState(false);
+  const [cookies, setCookie, removeCookie] = useCookies();
 
-  const [cookies, setCookie] = useCookies();
+  const [isSubmitActive, setIsSubmitActive] = useState(false);
+  const [enteredData, setEnteredData] = useState({
+    level: GAME_LEVELS_KEYS.EASY,
+    name: cookies?.name,
+  });
 
   const navigate = useNavigate();
   const { playerInfo, setPlayerInfo } = usePlayer();
@@ -45,7 +33,7 @@ export default function HomePage() {
   });
 
   const onChooseLevel = (level) => {
-    setPlayerInfo({ ...playerInfo, level });
+    setEnteredData((prev) => ({ ...prev, level }));
   };
 
   window.onkeydown = function (e) {
@@ -72,31 +60,49 @@ export default function HomePage() {
       setPlayerInfo({ ...playerInfo, sessionToken: token });
       setCookie("sessionToken", token, { expires: expirationDate });
     }
-  }, [playerInfo, setCookie, setPlayerInfo, data]);
+  }, [data, playerInfo, setCookie, setPlayerInfo]);
 
   useEffect(() => {
-    setPlayerInfo({
-      ...playerInfo,
-      name: cookies?.playerName,
-      sessionToken: cookies?.sessionToken,
-    });
-  }, []);
+    if (!playerInfo?.sessionToken) {
+      setPlayerInfo({
+        ...playerInfo,
+        name: cookies?.playerName,
+        sessionToken: cookies?.sessionToken,
+      });
+    }
+  }, [
+    playerInfo,
+    setPlayerInfo,
+    setCookie,
+    cookies?.sessionToken,
+    cookies?.playerName,
+  ]);
 
   const onSubmit = () => {
-    if (!playerInfo.name) {
+    if (!enteredData.name) {
       alert("Please, Enter your name first");
       return;
     }
+    setPlayerInfo((prev) => ({
+      ...prev,
+      ...enteredData,
+      selectedCatgeory: null,
+    }));
     setIsSubmitActive(true);
-    setCookie("playerName", playerInfo.name);
-    setCookie("playerLever", playerInfo.level);
+    setCookie("playerName", enteredData.name);
+    setCookie("playerLever", enteredData.level);
+    removeCookie("categoryName");
     navigate("/category");
   };
 
   return (
     <Wrapper>
       <MainContent>
-        <WelcomeScreen onChooseLevel={onChooseLevel} />
+        <WelcomeScreen
+          enteredData={enteredData}
+          setEnteredData={setEnteredData}
+          onChooseLevel={onChooseLevel}
+        />
         <Button
           label="PLAY"
           size={BUTTON_TYPES.SMALL}

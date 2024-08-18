@@ -16,5 +16,15 @@ export const AUTO_SKIPPING_TIME_IN_SECONDS = {
   HARD: 30,
 };
 
-export const MAX_NUMBER_OF_QUESTIONS = 1; //index from 0
+export const RANDOM_CATEGORY = {
+  name: "Random Questions",
+  index: 24,
+};
+
+export const MAX_NUMBER_OF_QUESTIONS = 2;
 export const MAX_NUMBER_OF_CATEGORIES = 3;
+
+export const QUESTIONS_TYPE = {
+  BOOLEON: "boolean",
+  MULTI: "multiple",
+};

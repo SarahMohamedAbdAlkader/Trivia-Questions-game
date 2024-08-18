@@ -19,22 +19,17 @@ const StackedBarChart = ({ gameQuestion }) => {
       min: -5,
       max: 5,
     },
-    annotations: {
-      yaxis: [
-        {
-          y: 0, // Position the line at 0 on the y-axis
-          borderColor: "#000", // Color of the line
-          strokeDashArray: 1, // Optional: dashed line
-          label: {
+    ...(gameQuestion.length && {
+      annotations: {
+        yaxis: [
+          {
+            y: 0,
             borderColor: "#000",
-            style: {
-              color: "#fff",
-              background: "#000",
-            },
+            strokeDashArray: 0,
           },
-        },
-      ],
-    },
+        ],
+      },
+    }),
     plotOptions: {
       bar: {
         horizontal: false,

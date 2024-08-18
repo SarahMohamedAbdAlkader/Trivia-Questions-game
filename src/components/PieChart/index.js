@@ -30,6 +30,10 @@ export default function PieChart({
         },
       },
     ],
+    fill: {
+      colors: ["#008000", "#FF5733", "gray"],
+      opacity: 1,
+    },
   };
 
   return (

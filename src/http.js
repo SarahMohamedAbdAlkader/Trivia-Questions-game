@@ -25,6 +25,7 @@ class Http {
   };
 
   handleError = (error) => {
+    console.error({ error: error.response?.data });
     return Promise.reject(error.response?.data);
   };
 

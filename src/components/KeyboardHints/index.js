@@ -1,29 +1,8 @@
-import styled from "styled-components";
-
 import LetterHighlighter from "components/LetterHighlighter";
 
 import { ReactComponent as MoveAround } from "assets/icons/move-around.svg";
 
-const ButtonWrapper = styled.span`
-  display: flex;
-  font-size: 25px;
-`;
-
-const AnswerButtonWrapper = styled.span`
-  display: flex;
-  font-size: 25px;
-  gap: 3px;
-`;
-
-const Wrapper = styled.footer`
-  display: flex;
-  gap: 29px;
-  flex-wrap: wrap;
-  width: 100%;
-  background-color: white;
-  padding: 20px;
-  box-sizing: border-box;
-`;
+import { AnswerButtonWrapper, ButtonWrapper, Wrapper } from "./index.styles";
 
 export default function KeyboardHints({
   showSkip,
