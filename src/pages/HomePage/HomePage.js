@@ -63,7 +63,7 @@ export default function HomePage() {
   }, [data, playerInfo, setCookie, setPlayerInfo]);
 
   useEffect(() => {
-    if (!playerInfo?.sessionToken) {
+    if (!playerInfo?.sessionToken && !data?.sessionToken) {
       setPlayerInfo({
         ...playerInfo,
         name: cookies?.playerName,
