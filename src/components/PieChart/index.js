@@ -5,6 +5,8 @@ export default function PieChart({
   falseAnswers,
   skippedAnswers,
 }) {
+  const sliceColors = ["#008000", "#FF5733", "gray"];
+
   const options = {
     labels: ["Correct", "False", "Skipped"],
     chart: {
@@ -31,8 +33,18 @@ export default function PieChart({
       },
     ],
     fill: {
-      colors: ["#008000", "#FF5733", "gray"],
+      colors: sliceColors,
       opacity: 1,
+    },
+    legend: {
+      labels: {
+        colors: sliceColors,
+      },
+      markers: {
+        width: 12,
+        height: 12,
+        radius: 12,
+      },
     },
   };
 

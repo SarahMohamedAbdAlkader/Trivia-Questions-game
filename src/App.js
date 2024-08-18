@@ -17,7 +17,7 @@ function App() {
           <Route path="/category" element={<CategoriesPage />} />
           <Route path="/game-questions" element={<GameQuestions />} />
           <Route path="/score" element={<ScoreScreen />} />
-          <Route element={<NotFound />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </div>

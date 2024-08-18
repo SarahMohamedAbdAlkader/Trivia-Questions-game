@@ -1,16 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import shuffle from "lodash/shuffle";
 import { useQuery } from "@tanstack/react-query";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
+import { useCookies } from "react-cookie";
 
 import { getCategoryQuestions } from "services/questions";
 import { usePlayer } from "contexts/player";
 import { BUTTON_TYPES } from "constants/button";
-
-import Button from "components/Button/index";
-import KeyboardHints from "components/KeyboardHints/index";
 import {
   AUTO_SKIPPING_TIME_IN_SECONDS,
   GAME_LEVELS_KEYS,
@@ -19,6 +16,11 @@ import {
   QUESTIONS_TYPE,
 } from "constants/game";
 import { KEYBOARD_KEYS } from "constants/keyboard-keys";
+import { RESPONSE_CODES } from "constants/response-codes";
+import { getSessionToken } from "services/session";
+
+import Button from "components/Button/index";
+import KeyboardHints from "components/KeyboardHints/index";
 
 import {
   AnswersWrapper,
@@ -33,9 +35,15 @@ export default function GameQuestions() {
   const [questionId, setQuestionId] = useState(0);
   const [choosenAnswer, setChoosenAnswer] = useState(null);
 
+  const [cookies, setCookie, removeCookie] = useCookies();
   const navigate = useNavigate();
-  const { playerInfo, setGameQuestion, spendedTime, setSpendedTime } =
-    usePlayer();
+  const {
+    playerInfo,
+    setPlayerInfo,
+    setGameQuestion,
+    spendedTime,
+    setSpendedTime,
+  } = usePlayer();
   const queryParameters = new URLSearchParams(window.location.search);
   const category = queryParameters.get("category");
   const startTime = new Date();
@@ -47,7 +55,7 @@ export default function GameQuestions() {
         amount: 10,
         ...(!!category && { category }),
         difficulty: playerInfo.level,
-        token: playerInfo?.sessionToken,
+        token: playerInfo?.sessionToken || cookies?.sessionToken,
       }),
   });
 
@@ -178,7 +186,7 @@ export default function GameQuestions() {
   }, [playerInfo.level]);
 
   useEffect(() => {
-    if (questionId >= data?.results?.length) {
+    if (data?.results?.length && questionId >= data?.results?.length) {
       navigate("/category");
     }
     const timeoutId = setTimeout(() => {
@@ -193,6 +201,24 @@ export default function GameQuestions() {
     navigate,
     onSkip,
   ]);
+
+  const generateNewToken = async () => {
+    try {
+      const { token } = await getSessionToken();
+      setCookie("sessionToken", token);
+      setPlayerInfo({ ...playerInfo, sessionToken: token });
+    } catch (error) {
+      //
+    }
+  };
+
+  useEffect(() => {
+    const { TOKEN_NOT_FOUND, EMPTY_TOKEN } = RESPONSE_CODES;
+    if ([TOKEN_NOT_FOUND, EMPTY_TOKEN].includes(data?.response_code)) {
+      removeCookie("sessionToken");
+      generateNewToken();
+    }
+  }, [data]);
 
   const renderTime = ({ remainingTime }) => {
     if (remainingTime === 0) {

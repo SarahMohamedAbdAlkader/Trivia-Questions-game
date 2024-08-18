@@ -1,14 +1,26 @@
 import ReactApexChart from "react-apexcharts";
 
 const StackedBarChart = ({ gameQuestion }) => {
-  const labels = [];
-  const series = gameQuestion.map((question) => {
-    labels.push(question.category);
-    return {
-      name: question.category,
-      data: [question?.correct, -question?.skipped || 0, -question?.false || 0],
-    };
-  });
+  const labels = gameQuestion.map((question) => question.category);
+
+  const series = [
+    {
+      name: "Correct",
+      data: gameQuestion.map((question) => question.correct),
+    },
+    {
+      name: "Skipped",
+      data: gameQuestion.map((question) =>
+        question.skipped ? -question.skipped : 0
+      ),
+    },
+    {
+      name: "False",
+      data: gameQuestion.map((question) =>
+        question.false ? -question.false : 0
+      ),
+    },
+  ];
 
   const options = {
     chart: {
@@ -19,17 +31,15 @@ const StackedBarChart = ({ gameQuestion }) => {
       min: -5,
       max: 5,
     },
-    ...(gameQuestion.length && {
-      annotations: {
-        yaxis: [
-          {
-            y: 0,
-            borderColor: "#000",
-            strokeDashArray: 0,
-          },
-        ],
-      },
-    }),
+    annotations: {
+      yaxis: [
+        {
+          y: 0,
+          borderColor: "#000",
+          strokeDashArray: 0,
+        },
+      ],
+    },
     plotOptions: {
       bar: {
         horizontal: false,
@@ -39,11 +49,11 @@ const StackedBarChart = ({ gameQuestion }) => {
       categories: labels, // X-axis categories
     },
     legend: {
-      show: false,
-      position: "bottom",
+      show: true,
+      position: "top",
     },
     fill: {
-      colors: ["#FF5733", "gray", "#008000"],
+      colors: ["#008000", "gray", "#FF5733"],
       opacity: 1,
     },
   };

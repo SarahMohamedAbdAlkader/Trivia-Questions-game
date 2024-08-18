@@ -1,0 +1,7 @@
+export const RESPONSE_CODES = {
+  SUCCESS: 0,
+  NO_RESULT: 1,
+  INVALID_PARAM: 2,
+  TOKEN_NOT_FOUND: 3,
+  EMPTY_TOKEN: 4,
+};

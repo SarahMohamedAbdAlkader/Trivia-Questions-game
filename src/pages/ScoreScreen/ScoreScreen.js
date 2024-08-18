@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 import { usePlayer } from "contexts/player";
 
@@ -15,7 +16,6 @@ import {
   TimeWrapper,
   Wrapper,
 } from "./ScoreScreen.styles";
-import { useEffect } from "react";
 
 export default function ScoreScreen() {
   const { playerInfo, gameQuestion, spendedTime } = usePlayer();
