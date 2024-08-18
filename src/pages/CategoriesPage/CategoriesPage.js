@@ -61,6 +61,7 @@ export default function CategoriesPage() {
   };
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     handleGettingCategories();
   }, [data, handleGettingCategories]);
 

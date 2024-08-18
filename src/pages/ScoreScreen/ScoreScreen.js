@@ -36,11 +36,12 @@ export default function ScoreScreen() {
     0
   );
 
-  // useEffect(() => {
-  //   if (!gameQuestion.length) {
-  //     navigate("/");
-  //   }
-  // }, [gameQuestion, navigate]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if (!gameQuestion.length) {
+      navigate("/");
+    }
+  }, [gameQuestion, navigate]);
 
   return (
     <Wrapper>
