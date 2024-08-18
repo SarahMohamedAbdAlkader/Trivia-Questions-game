@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import useCookies from "react-cookie";
 
 import { usePlayer } from "contexts/player";
 
@@ -18,7 +19,9 @@ import {
 } from "./ScoreScreen.styles";
 
 export default function ScoreScreen() {
-  const { playerInfo, gameQuestion, spendedTime } = usePlayer();
+  const [cookiese] = useCookies();
+
+  const { gameQuestion, spendedTime } = usePlayer();
   const navigate = useNavigate();
 
   const time = spendedTime / 1000;
@@ -45,7 +48,7 @@ export default function ScoreScreen() {
 
   return (
     <Wrapper>
-      <Label>{playerInfo.name}</Label>
+      <Label>{cookies?.playerName}</Label>
       <ContentWrapper>
         <CardsWrapper>
           <Card>
