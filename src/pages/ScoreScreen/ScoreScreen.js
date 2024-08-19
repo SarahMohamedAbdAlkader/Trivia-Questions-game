@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import useCookies from "react-cookie";
+import { useCookies } from "react-cookie";
 
 import { usePlayer } from "contexts/player";
 
@@ -19,7 +19,7 @@ import {
 } from "./ScoreScreen.styles";
 
 export default function ScoreScreen() {
-  const [cookiese] = useCookies();
+  const [cookies] = useCookies();
 
   const { gameQuestion, spendedTime } = usePlayer();
   const navigate = useNavigate();

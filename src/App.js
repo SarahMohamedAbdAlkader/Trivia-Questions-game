@@ -1,5 +1,6 @@
 import { Routes, Route, BrowserRouter } from "react-router-dom";
-
+import { Analytics } from "@vercel/analytics/react";
+ 
 import HomePage from "pages/HomePage/HomePage";
 import CategoriesPage from "pages/CategoriesPage/CategoriesPage";
 import GameQuestions from "pages/GameQuestions/GameQuestions";
@@ -20,6 +21,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      <Analytics />
     </div>
   );
 }
